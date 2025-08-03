@@ -65,9 +65,9 @@ const App = () => {
     event.preventDefault()
     if (personsToShow.find(person => person.name == newName)) {
       if (window.confirm(`${newName} is already added to the phonebook. Do you want to replace the old number with the new one?`)) {
-          const updatedPerson = personsToShow.find(person => person.name == newName)
-          const personId = updatedPerson.id
+          const updatedPerson = persons.find(person => person.name == newName)
           console.log(updatedPerson)
+          const personId = updatedPerson.id
           console.log(personId)
           const personObject = {
             name: newName,
@@ -76,7 +76,7 @@ const App = () => {
           personService
             .updateNumber(personId, personObject)
             .then(response => {
-              setPersons(persons.map(person => person.id != personId ? person : response.data))
+              setPersons(persons.map(person => person.id !== personId ? person : response.data))
             })
             .then(() => {
               setSuccessMessage(`Phonenumber updated for ${newName}`)
@@ -92,23 +92,29 @@ const App = () => {
       name: newName,
       number: newNumber
       }
-      setPersons(persons.concat(personObject))
-      setNewName("")
-      setNewNumber("")
       personService
         .create(personObject)
-        .then(() => {
-            setSuccessMessage(`${newName} added to the phonebook`)
-            setTimeout(() => {
-            setSuccessMessage(null)
-            }, 5000)
+        .then((response) => {
+          setPersons(persons.concat(response.data))
+          setNewName("")
+          setNewNumber("")
+          setSuccessMessage(`${newName} added to the phonebook`)
+          setTimeout(() => {
+          setSuccessMessage(null)
+          }, 5000)
+        })
+        .catch(error => {
+          setErrorMessage(`${error.response.data.error}`)
+          setTimeout(() => {
+          setErrorMessage(null)
+          }, 5000)
         })
     } 
   }
 
   const removePerson = (id) => {    
-    const updatedPersons = persons.filter(person => person.id != id)
-    const name = persons.filter(person => person.id == id)[0].name
+    const updatedPersons = persons.filter(person => person.id !== id)
+    const name = (persons.find(person => person.id === id)).name
     if (window.confirm("Do you want to delete selected contact?")) {
       personService
         .remove(id)
